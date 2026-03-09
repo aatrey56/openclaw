@@ -19,26 +19,11 @@ extension NodeAppModel {
     }
 
     func showA2UIOnConnectIfNeeded() async {
-        guard let a2uiUrl = await self.resolveA2UIHostURL() else {
-            await MainActor.run {
-                self.lastAutoA2uiURL = nil
-                self.screen.showDefaultCanvas()
-            }
-            return
-        }
-        let current = self.screen.urlString.trimmingCharacters(in: .whitespacesAndNewlines)
-        if current.isEmpty || current == self.lastAutoA2uiURL {
-            // Avoid navigating the WKWebView to an unreachable host: it leaves a persistent
-            // "could not connect to the server" overlay even when the gateway is connected.
-            if let url = URL(string: a2uiUrl),
-               await Self.probeTCP(url: url, timeoutSeconds: 2.5)
-            {
-                self.screen.navigate(to: a2uiUrl)
-                self.lastAutoA2uiURL = a2uiUrl
-            } else {
-                self.lastAutoA2uiURL = nil
-                self.screen.showDefaultCanvas()
-            }
+        await MainActor.run {
+            // Keep the bundled home canvas as the default connected view.
+            // Agents can still explicitly present a remote or local canvas later.
+            self.lastAutoA2uiURL = nil
+            self.screen.showDefaultCanvas()
         }
     }
 
