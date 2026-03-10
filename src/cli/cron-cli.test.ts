@@ -693,6 +693,22 @@ describe("cron cli", () => {
     expect(patch?.patch?.failureAlert).toBe(false);
   });
 
+  it("cron runs passes id and default limit", async () => {
+    await runCronCommand(["cron", "runs", "job-1"]);
+    const runsCall = callGatewayFromCli.mock.calls.find((call) => call[0] === "cron.runs");
+    const params = runsCall?.[2] as { id?: string; limit?: number };
+    expect(params?.id).toBe("job-1");
+    expect(params?.limit).toBe(50);
+  });
+
+  it("cron runs respects --limit", async () => {
+    await runCronCommand(["cron", "runs", "job-1", "--limit", "10"]);
+    const runsCall = callGatewayFromCli.mock.calls.find((call) => call[0] === "cron.runs");
+    const params = runsCall?.[2] as { id?: string; limit?: number };
+    expect(params?.id).toBe("job-1");
+    expect(params?.limit).toBe(10);
+  });
+
   it("patches failure alert mode/accountId on cron edit", async () => {
     callGatewayFromCli.mockClear();
 
